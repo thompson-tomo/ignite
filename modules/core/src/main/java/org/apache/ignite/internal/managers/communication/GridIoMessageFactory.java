@@ -178,6 +178,10 @@ import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.Gri
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionDemandMessageSerializer;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionExchangeId;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionExchangeIdSerializer;
+import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionFullMap;
+import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionFullMapSerializer;
+import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionMap;
+import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionMapSerializer;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionSupplyMessage;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionSupplyMessageSerializer;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionsFullMessage;
@@ -317,6 +321,8 @@ import org.apache.ignite.internal.processors.service.ServiceSingleNodeDeployment
 import org.apache.ignite.internal.processors.service.ServiceSingleNodeDeploymentResultSerializer;
 import org.apache.ignite.internal.util.GridByteArrayList;
 import org.apache.ignite.internal.util.GridByteArrayListSerializer;
+import org.apache.ignite.internal.util.GridPartitionStateMap;
+import org.apache.ignite.internal.util.GridPartitionStateMapSerializer;
 import org.apache.ignite.internal.util.UUIDCollectionMessage;
 import org.apache.ignite.internal.util.UUIDCollectionMessageSerializer;
 import org.apache.ignite.internal.util.distributed.SingleNodeMessage;
@@ -343,6 +349,8 @@ public class GridIoMessageFactory implements MessageFactoryProvider {
     /** {@inheritDoc} */
     @Override public void registerAll(MessageFactory factory) {
         // -54 is reserved for SQL.
+        // We don't use the code‑generated serializer for CompressedMessage - serialization is highly customized.
+        factory.register(CompressedMessage.TYPE_CODE, CompressedMessage::new);
         factory.register((short)-100, ErrorMessage::new, new ErrorMessageSerializer());
         factory.register((short)-65, TxInfo::new, new TxInfoSerializer());
         factory.register((short)-64, TxEntriesInfo::new, new TxEntriesInfoSerializer());
@@ -530,6 +538,9 @@ public class GridIoMessageFactory implements MessageFactoryProvider {
             new IgniteDhtPartitionsToReloadMapSerializer());
         factory.register(IntLongMap.TYPE_CODE, IntLongMap::new, new IntLongMapSerializer());
         factory.register(IndexKeyTypeMessage.TYPE_CODE, IndexKeyTypeMessage::new, new IndexKeyTypeMessageSerializer());
+        factory.register(GridPartitionStateMap.TYPE_CODE, GridPartitionStateMap::new, new GridPartitionStateMapSerializer());
+        factory.register(GridDhtPartitionMap.TYPE_CODE, GridDhtPartitionMap::new, new GridDhtPartitionMapSerializer());
+        factory.register(GridDhtPartitionFullMap.TYPE_CODE, GridDhtPartitionFullMap::new, new GridDhtPartitionFullMapSerializer());
 
         // [-3..119] [124..129] [-23..-28] [-36..-55] [183..188] - this
         // [120..123] - DR
